@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_DB: lcm_microservice_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "1234:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  eureka-server:
+    build: ./eureka_server
+    container_name: eureka_server
+    ports:
+      - "8761:8761"
+    depends_on:
+      - postgres
+
+  api-gateway:
+    build: ./api_gateway
+    container_name: api_gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+
+  course-service:
+    build: ./course_service
+    container_name: course_service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lcm_microservice_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+
+  enrollment_service:
+    build: ./enrollment_service
+    container_name: enrollment_service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lcm_microservice_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+
+  payment-service:
+    build: ./payment_service
+    container_name: payment_service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lcm_microservice_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+
+  student-service:
+    build: ./student_service
+    container_name: student_service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - postgres
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lcm_microservice_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+
+volumes:
+  pgdata:
