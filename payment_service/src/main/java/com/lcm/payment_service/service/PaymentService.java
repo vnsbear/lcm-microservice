@@ -1,10 +1,10 @@
 package com.lcm.payment_service.service;
 
 import com.lcm.payment_service.dto.PaymentRequestDto;
-import com.lcm.payment_service.dto.ApiResponse;
 import com.lcm.payment_service.model.Payment;
 import com.lcm.payment_service.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,71 +20,53 @@ public class PaymentService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public ApiResponse<Map<String, Object>> pay(PaymentRequestDto request) {
-        // Lấy thông tin enrollment theo enrollmentId
+    public ResponseEntity<Map<String, Object>> pay(PaymentRequestDto request) {
+        // Fetch enrollment details
         LinkedHashMap response = restTemplate.getForObject(
-                "http://localhost:8080/enrollments/" + request.getEnrollmentId(),
+                "http://localhost:9090/enrollments/" + request.getEnrollmentId(),
                 LinkedHashMap.class
         );
 
-        LinkedHashMap enrollment = (LinkedHashMap) response.get("data");
+        System.out.println(response);
 
-        if (enrollment == null || enrollment.get("courses") == null) {
-            return new ApiResponse<>("error", "Enrollment or courses not found", null);
+        if (response == null ) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Enrollment or courses not found");
+            return ResponseEntity.status(404).body(errorResponse);
         }
 
-        List<LinkedHashMap<String, Object>> courses = (List<LinkedHashMap<String, Object>>) enrollment.get("courses");
-
-        int total = 0;
-        List<Map<String, Object>> courseSummaries = new ArrayList<>();
-
-        for (LinkedHashMap<String, Object> course : courses) {
-            String courseId = (String) course.get("courseId");
-
-            System.out.println("Fetching course info for ID: " + courseId);
-
-            // Gọi course-service
-            LinkedHashMap outerResponse = restTemplate.getForObject(
-                    "http://localhost:8080/courses/" + courseId,
-                    LinkedHashMap.class
-            );
-
-            LinkedHashMap courseResponse = outerResponse != null ? (LinkedHashMap) outerResponse.get("data") : null;
-
-            System.out.println("Course response: " + courseResponse);
-
-            String courseName = courseResponse != null ? (String) courseResponse.get("name") : null; // Đúng key ở đây!
-            Object feeObj = courseResponse != null ? courseResponse.get("fee") : 0;
-
-            int fee = 0;
-            if (feeObj instanceof Integer) {
-                fee = (int) feeObj;
-            } else if (feeObj instanceof Double) {
-                fee = (int) ((Double) feeObj).doubleValue();
-            }
-
-            total += fee;
-
-            Map<String, Object> courseInfo = new HashMap<>();
-            courseInfo.put("courseId", courseId);
-            courseInfo.put("courseName", courseName);
-            courseInfo.put("fee", fee);
-            courseSummaries.add(courseInfo);
-        }
+        Integer amount = (Integer) response.get("totalAmount");
 
 
-        // Tạo bản ghi thanh toán
         Payment payment = new Payment();
         payment.setStudentId(request.getStudentId());
         payment.setEnrollmentId(request.getEnrollmentId());
-        payment.setAmount(total);
-        payment.setTimestamp(LocalDateTime.now());
+        payment.setAmount(amount);
+        payment.setPaymentMethod("Banking");
+        payment.setPaymentDate(LocalDateTime.now());
+        payment.setPaymentMethod(request.getMethod());
+        payment.setStatus("success");
         repo.save(payment);
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("totalPaid", total);
-        data.put("coursesPaid", courseSummaries);
+        try {
+            restTemplate.put("http://localhost:9090/enrollments/mark-paid/" + request.getEnrollmentId(), null);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "partial_success");
+            errorResponse.put("message", "Payment succeeded but failed to mark enrollment as paid");
+            return ResponseEntity.ok(errorResponse);
+        }
 
-        return new ApiResponse<>("success", "Payment processed successfully", data);
+        Map<String, Object> data = new HashMap<>();
+        data.put("paymentId", payment.getId());
+        data.put("amount", amount);
+
+        Map<String, Object> successResponse = new HashMap<>();
+        successResponse.put("status", "success");
+        successResponse.put("message", "Payment processed and enrollment marked as paid");
+        successResponse.put("data", data);
+
+        return ResponseEntity.ok(successResponse);
     }
 }

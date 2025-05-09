@@ -5,6 +5,7 @@ import java.util.UUID;
 public class PaymentRequestDto {
     private UUID enrollmentId;
     private UUID studentId;
+    private String method;
 
     public UUID getEnrollmentId() {
         return enrollmentId;
@@ -20,5 +21,13 @@ public class PaymentRequestDto {
 
     public void setStudentId(UUID studentId) {
         this.studentId = studentId;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
     }
 }

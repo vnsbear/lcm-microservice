@@ -19,16 +19,22 @@ public class Payment {
     private UUID enrollmentId; // thêm trường enrollmentId
 
     private int amount;
-    private LocalDateTime timestamp;
+    private String status;
+    private String paymentMethod;
+    private String transactionId;
+    private LocalDateTime paymentDate;
 
     public Payment() {}
 
-    public Payment(UUID id, UUID studentId, UUID enrollmentId, int amount, LocalDateTime timestamp) {
+    public Payment(UUID id, UUID studentId, UUID enrollmentId, int amount, String status, String paymentMethod, String transactionId, LocalDateTime paymentDate) {
         this.id = id;
         this.studentId = studentId;
         this.enrollmentId = enrollmentId;
         this.amount = amount;
-        this.timestamp = timestamp;
+        this.status = status;
+        this.paymentMethod = paymentMethod;
+        this.transactionId = transactionId;
+        this.paymentDate = paymentDate;
     }
 
     public UUID getId() {
@@ -63,11 +69,35 @@ public class Payment {
         this.amount = amount;
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public String getStatus() {
+        return status;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public LocalDateTime getPaymentDate() {
+        return paymentDate;
+    }
+
+    public void setPaymentDate(LocalDateTime paymentDate) {
+        this.paymentDate = paymentDate;
     }
 }

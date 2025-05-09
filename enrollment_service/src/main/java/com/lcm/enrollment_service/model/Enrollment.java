@@ -15,20 +15,20 @@ public class Enrollment {
     private UUID id;
     private UUID studentId;
     private boolean paid;
+    private int totalCourse;
+    private int totalAmount;
     private LocalDateTime enrollmentDate;
-    @OneToMany(mappedBy = "enrollment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<EnrollmentCourse> courses;
 
-    public Enrollment(UUID id, UUID studentId, boolean paid, LocalDateTime enrollmentDate, List<EnrollmentCourse> courses) {
+    public Enrollment(UUID id, UUID studentId, boolean paid, int totalCourse, int totalAmount, LocalDateTime enrollmentDate) {
         this.id = id;
         this.studentId = studentId;
         this.paid = paid;
+        this.totalCourse = totalCourse;
+        this.totalAmount = totalAmount;
         this.enrollmentDate = enrollmentDate;
-        this.courses = courses;
     }
 
-    public Enrollment(){}
+    public Enrollment() {}
 
     public UUID getId() {
         return id;
@@ -54,19 +54,27 @@ public class Enrollment {
         this.paid = paid;
     }
 
+    public int getTotalCourse() {
+        return totalCourse;
+    }
+
+    public void setTotalCourse(int totalCourse) {
+        this.totalCourse = totalCourse;
+    }
+
+    public int getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(int totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
     public LocalDateTime getEnrollmentDate() {
         return enrollmentDate;
     }
 
     public void setEnrollmentDate(LocalDateTime enrollmentDate) {
         this.enrollmentDate = enrollmentDate;
-    }
-
-    public List<EnrollmentCourse> getCourses() {
-        return courses;
-    }
-
-    public void setCourses(List<EnrollmentCourse> courses) {
-        this.courses = courses;
     }
 }

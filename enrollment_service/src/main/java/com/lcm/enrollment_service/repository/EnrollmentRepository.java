@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
     List<Enrollment> findByStudentId(UUID studentId);
     List<Enrollment> findByStudentIdAndPaidFalse(UUID studentId);
+    List<Enrollment> findByPaidTrue();
 }

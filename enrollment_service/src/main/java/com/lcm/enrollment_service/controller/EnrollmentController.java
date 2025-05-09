@@ -1,12 +1,15 @@
 package com.lcm.enrollment_service.controller;
 
-import com.lcm.enrollment_service.dto.APIResponseDto;
 import com.lcm.enrollment_service.dto.EnrollmentRequestDto;
+import com.lcm.enrollment_service.model.Enrollment;
 import com.lcm.enrollment_service.service.EnrollmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @RestController
 @RequestMapping("/enrollments")
@@ -14,27 +17,49 @@ public class EnrollmentController {
     @Autowired private EnrollmentService service;
 
     @PostMapping
-    public APIResponseDto<?> register(@RequestBody EnrollmentRequestDto request) {
-        return service.register(request.getStudentId(), request.getCourseIds());
+    public ResponseEntity<Enrollment> enrollment(@RequestBody Map<String, Object> request) {
+        UUID studentId = UUID.fromString((String) request.get("studentId"));
+        Object courseIdsObject = request.get("courseIds");
+        List<String> courseIdStrings = (List<String>) courseIdsObject;
+        System.out.println(courseIdStrings);
+        List<UUID> courseIds = new ArrayList<>();
+        for (String id : courseIdStrings) {
+            courseIds.add(UUID.fromString(id));
+        }
+        return service.enrollment(studentId, courseIds);
     }
 
-    @GetMapping("/student/{id}")
-    public APIResponseDto<?> getByStudent(@PathVariable UUID id) {
-        return service.getByStudent(id);
+    @GetMapping("/monthly-revenue")
+    public ResponseEntity<List<Map<String, Object>>> getMonthlyRevenue() {
+        return service.getMonthlyRevenue();
     }
 
-    @GetMapping("/student/{id}/unpaid")
-    public APIResponseDto<?> getUnpaidByStudent(@PathVariable UUID id) {
-        return service.getUnpaidByStudent(id);
+    @GetMapping("/quarterly-revenue")
+    public ResponseEntity<List<Map<String, Object>>> getQuarterlyRevenue() {
+        return service.getQuarterlyRevenue();
     }
 
-    @PutMapping("/mark-paid/{studentId}")
-    public APIResponseDto<?> markAsPaid(@PathVariable UUID studentId) {
-        return service.markAsPaid(studentId);
+    @GetMapping("/yearly-revenue")
+    public ResponseEntity<List<Map<String, Object>>> getYearlyRevenue() {
+        return service.getYearlyRevenue();
+    }
+
+    @GetMapping("/course-revenue")
+    public ResponseEntity<List<Map<String, Object>>> getCourseRevenue(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+
+        return service.getCourseRevenue(startDate, endDate);
+    }
+
+    @PutMapping("/mark-paid/{enrollmentId}")
+    public ResponseEntity<String> markAsPaid(@PathVariable UUID enrollmentId) {
+        return service.markAsPaid(enrollmentId);
     }
 
     @GetMapping("/{id}")
-    public APIResponseDto<?> getById(@PathVariable UUID id) {
+    public ResponseEntity<?> getById(@PathVariable UUID id) {
         return service.getById(id);
     }
+
 }
